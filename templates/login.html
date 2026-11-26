@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-page">
+  <div class="login-bg-shape login-bg-shape-1"></div>
+  <div class="login-bg-shape login-bg-shape-2"></div>
+
+  <div class="login-split-card">
+    <!-- Left Accent Panel -->
+    <div class="login-left-panel">
+      <div class="login-geo-ring"></div>
+      <div class="login-geo-wedge"></div>
+      <div class="login-geo-arc"></div>
+
+      <div class="login-left-brand">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        <div class="login-left-brand-name">
+          <div>Order-to-Audit</div>
+        </div>
+      </div>
+
+      <div class="login-left-welcome">
+        <h2>Hey<br>Welcome To<br>Order-to-Audit</h2>
+        <div class="login-left-sub">{{ factory_name }}</div>
+      </div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="login-right-panel">
+      <div class="login-right-title">Login</div>
+
+      <form method="post">
+        <div class="login-pill-wrap">
+          <input type="text" name="username" class="login-card-input"
+                 placeholder="Username" required autofocus autocomplete="username">
+        </div>
+
+        <div class="login-pill-wrap">
+          <input type="password" name="password" id="pwdField" class="login-card-input"
+                 placeholder="Password" required autocomplete="current-password"
+                 style="padding-right:44px;">
+          <button type="button"
+                  onclick="var f=document.getElementById('pwdField'),ic=this.querySelector('i');if(f.type==='password'){f.type='text';ic.className='bi bi-eye-fill';}else{f.type='password';ic.className='bi bi-eye-slash-fill';}"
+                  aria-label="Toggle password visibility"
+                  style="position:absolute;right:16px;top:50%;transform:translateY(-50%);
+                         background:none;border:none;cursor:pointer;color:#94a3b8;
+                         font-size:.92rem;padding:0;">
+            <i class="bi bi-eye-slash-fill"></i>
+          </button>
+        </div>
+
+        <div class="login-btn-wrap">
+          <button type="submit" class="login-btn">Login</button>
+        </div>
+      </form>
+
+      <details class="login-demo-details">
+        <summary>Demo credentials</summary>
+        <div class="login-demo-box">
+          <div class="demo-cred"><span class="role-tag">Admin</span><span><code>admin</code> / <code>admin123</code></span></div>
+          <div class="demo-cred"><span class="role-tag">Salesman A</span><span><code>salesman_a</code> / <code>sales123</code></span></div>
+          <div class="demo-cred"><span class="role-tag">Salesman B</span><span><code>salesman_b</code> / <code>sales123</code></span></div>
+          <div class="demo-cred"><span class="role-tag">Supervisor</span><span><code>supervisor</code> / <code>prod123</code></span></div>
+          <div class="demo-cred"><span class="role-tag">Auditor</span><span><code>auditor</code> / <code>audit123</code></span></div>
+          <div class="demo-cred"><span class="role-tag">Owner</span><span><code>owner</code> / <code>owner123</code></span></div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+{% endblock %}

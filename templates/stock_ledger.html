@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Stock Ledger{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Immutable Stock Ledger</h1>
+    <div class="page-subtitle">Append-only inventory movement log with source document &amp; user audit trail</div>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-journal-text text-primary-brand me-2"></i>Stock Movements</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Item</th>
+          <th>Movement</th>
+          <th class="amount">In</th>
+          <th class="amount">Out</th>
+          <th class="amount">Rate (₹)</th>
+          <th class="amount">Value (₹)</th>
+          <th class="amount">Balance</th>
+          <th>Doc No</th>
+          <th>User</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in ledger %}
+        <tr>
+          <td class="text-muted-sm mono">{{ l.movement_date.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td><span class="chip chip-info">{{ l.item_type | replace('_', ' ') }}</span></td>
+          <td class="fw-600">{{ l.item_name }}</td>
+          <td><span class="chip chip-cancelled">{{ l.movement_type }}</span></td>
+          <td class="amount mono text-success">{{ l.qty_in }}</td>
+          <td class="amount mono text-danger">{{ l.qty_out }}</td>
+          <td class="amount mono">₹{{ "%.4f"|format(l.unit_rate) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(l.total_value) }}</td>
+          <td class="amount mono fw-700">{{ l.balance_qty }}</td>
+          <td class="mono text-muted-sm">{{ l.source_doc_no or "—" }}</td>
+          <td class="text-muted-sm">{{ l.user_name or "—" }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="11">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-journal-text"></i></div>
+              <h6>No stock movements recorded</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

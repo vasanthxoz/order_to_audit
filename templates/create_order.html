@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Create Sales Order{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Create Sales Order</h1>
+    <div class="page-subtitle">Mobile-friendly order capture with live price &amp; stock lookup</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('orders_page') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span><i class="bi bi-cart-plus-fill text-primary-brand me-2"></i>Order Details</span>
+    <span class="chip chip-info">Auto Price List</span>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label">Customer</label>
+          <select name="customer_id" class="form-select" required>
+            <option value="">-- Select Customer --</option>
+            {% for c in customers %}
+            <option value="{{ c.id }}">{{ c.name }} ({{ c.state }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Order Date</label>
+          <input type="date" name="order_date" class="form-control" value="{{ today_str }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Remarks</label>
+          <input type="text" name="remarks" class="form-control" placeholder="Optional note">
+        </div>
+      </div>
+
+      <div class="section-label">Order Line Items</div>
+      <div class="table-responsive mb-4" style="border:1px solid var(--border-color);border-radius:12px;">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th style="width:130px;">Price (₹)</th>
+              <th style="width:130px;">Available</th>
+              <th style="width:150px;">Qty (Packets)</th>
+              <th style="width:180px;">Stock Check</th>
+            </tr>
+          </thead>
+          <tbody id="order-items-body">
+            <tr>
+              <td>
+                <select name="product_id[]" class="form-select form-select-sm" onchange="onOrderProductChange(this)" required>
+                  <option value="">-- Select Product --</option>
+                  {% for p in products %}
+                  <option value="{{ p.id }}">{{ p.name }} ({{ p.sku }})</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="text" class="form-control form-control-sm unit-price-display mono" readonly placeholder="Auto"></td>
+              <td class="avail-stock-display text-muted-sm mono">—</td>
+              <td><input type="number" name="qty_packets[]" class="form-control form-control-sm qty-input mono" min="1" step="1" oninput="checkRowStock(this.closest('tr'))" required></td>
+              <td class="stock-warning-cell"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-between flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-mobile-full" onclick="addOrderRow()">
+          <i class="bi bi-plus-lg"></i> Add Product Line
+        </button>
+        <button type="submit" class="btn btn-primary btn-mobile-full">
+          <i class="bi bi-check2-circle"></i> Submit Sales Order
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

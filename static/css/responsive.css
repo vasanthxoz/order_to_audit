@@ -1,0 +1,67 @@
+/* ============================================================
+   RESPONSIVE  —  Order-to-Audit v2
+   ============================================================ */
+
+/* ---- Tablet ---- */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 230px; }
+  .page-wrapper { padding: 22px 22px; }
+}
+
+/* ---- Mobile (< 768px) — hidden sidebar, topbar shown ---- */
+@media (max-width: 767.98px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0,0,0,.35);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block !important;
+  }
+
+  .topbar { display: flex; }
+
+  .main-content { margin-left: 0; }
+
+  .page-wrapper { padding: 18px 16px; }
+
+  .page-header { flex-direction: column; align-items: flex-start; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  .kpi-value { font-size: 1.3rem; }
+
+  .table-toolbar { flex-direction: column; align-items: flex-start; }
+
+  .btn-mobile-full { width: 100%; justify-content: center; }
+
+  .login-card { padding: 30px 24px; }
+}
+
+/* ---- Very small (< 400px) ---- */
+@media (max-width: 399.98px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .page-title { font-size: 1.15rem; }
+}
+
+/* ---- Sidebar backdrop (mobile overlay) ---- */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+/* ---- Table responsive tweaks ---- */
+@media (max-width: 575.98px) {
+  .table { font-size: .8rem; }
+  .table thead th,
+  .table tbody td { padding: 9px 10px; }
+  .btn-sm { padding: 4px 9px; font-size: .73rem; }
+}

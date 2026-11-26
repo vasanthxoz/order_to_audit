@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Inventory Summary{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Inventory Summary</h1>
+    <div class="page-subtitle">Weighted average stock valuation across raw, packaging &amp; finished goods</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('inventory_page') }}" class="btn btn-sm {% if not selected_type %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+    <a href="{{ url_for('inventory_page', type='RAW_MATERIAL') }}" class="btn btn-sm {% if selected_type=='RAW_MATERIAL' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Raw Materials</a>
+    <a href="{{ url_for('inventory_page', type='PACKAGING_MATERIAL') }}" class="btn btn-sm {% if selected_type=='PACKAGING_MATERIAL' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Packaging</a>
+    <a href="{{ url_for('inventory_page', type='FINISHED_GOOD') }}" class="btn btn-sm {% if selected_type=='FINISHED_GOOD' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Finished Goods</a>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-boxes text-primary-brand me-2"></i>Current Stock Balances</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Code</th>
+          <th>Item</th>
+          <th>Unit</th>
+          <th class="amount">Opening</th>
+          <th class="amount">Receipts</th>
+          <th class="amount">Issues</th>
+          <th class="amount">Closing Stock</th>
+          <th class="amount">Avg Rate (₹)</th>
+          <th class="amount">Stock Value (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stock %}
+        <tr>
+          <td><span class="chip chip-info">{{ s.item_type | replace('_', ' ') }}</span></td>
+          <td class="mono text-muted-sm">{{ s.item_code }}</td>
+          <td class="fw-600">{{ s.item_name }}</td>
+          <td class="text-muted-sm">{{ s.unit_code }}</td>
+          <td class="amount mono">{{ s.opening_qty }}</td>
+          <td class="amount mono text-success">{{ s.total_receipts }}</td>
+          <td class="amount mono text-danger">{{ s.total_issues }}</td>
+          <td class="amount mono fw-700 text-primary-brand">{{ s.current_qty }}</td>
+          <td class="amount mono">₹{{ "%.4f"|format(s.weighted_avg_rate) }}</td>
+          <td class="amount mono fw-600">₹{{ "%.2f"|format(s.stock_value) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="10">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-boxes"></i></div>
+              <h6>No inventory items found</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Auditor Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Accountant &amp; Auditor Dashboard</h1>
+    <div class="page-subtitle">Read-Only Compliance &amp; Audit · {{ factory_name }}</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reports_page') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-file-earmark-spreadsheet-fill"></i> Monthly Reports &amp; Exports
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card table-card h-100">
+      <div class="table-toolbar">
+        <span class="table-title">
+          <i class="bi bi-receipt-cutoff text-primary-brand me-2"></i>GST Summary (GSTR-1 / GSTR-3B)
+        </span>
+        <span class="chip chip-info">Tax Split</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Supply Type</th>
+              <th>HSN</th>
+              <th class="amount">Taxable (₹)</th>
+              <th class="amount">CGST (₹)</th>
+              <th class="amount">SGST (₹)</th>
+              <th class="amount">IGST (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for g in gst_rows %}
+            <tr>
+              <td><span class="chip chip-info">{{ g.supply_type }}</span></td>
+              <td class="mono">{{ g.hsn_code }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(g.taxable_value) }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(g.cgst_amount) }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(g.sgst_amount) }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(g.igst_amount) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon"><i class="bi bi-file-earmark-text"></i></div>
+                  <h6>No GST entries yet</h6>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card table-card h-100">
+      <div class="table-toolbar">
+        <span class="table-title">
+          <i class="bi bi-clock-history text-primary-brand me-2"></i>Customer Receivables Ageing
+        </span>
+        <a href="{{ url_for('outstanding_page') }}" class="btn btn-outline-secondary btn-sm">
+          Details <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th class="amount">Invoiced (₹)</th>
+              <th class="amount">Paid (₹)</th>
+              <th class="amount">Outstanding (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in ageing %}
+            <tr>
+              <td class="fw-600">{{ a.customer_name }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(a.total_invoiced) }}</td>
+              <td class="amount mono text-success">₹{{ "%.2f"|format(a.total_paid) }}</td>
+              <td class="amount mono fw-700 {% if a.total_outstanding > 0 %}text-danger{% else %}text-success{% endif %}">
+                ₹{{ "%.2f"|format(a.total_outstanding) }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4">
+                <div class="empty-state">
+                  <div class="empty-icon"><i class="bi bi-cash-stack"></i></div>
+                  <h6>No receivables data</h6>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title">
+      <i class="bi bi-shield-check text-primary-brand me-2"></i>Recent Audit Trail
+    </span>
+    <a href="{{ url_for('audit_logs_page') }}" class="btn btn-outline-secondary btn-sm">
+      Full Log <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td class="text-muted-sm mono">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td class="fw-600">{{ l.username }}</td>
+          <td><span class="chip chip-info">{{ l.action }}</span></td>
+          <td>{{ l.entity_type }}</td>
+          <td class="text-muted-sm">{{ l.details }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-shield"></i></div>
+              <h6>No audit logs recorded</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

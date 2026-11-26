@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Dispatch{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Order Dispatch</h1>
+    <div class="page-subtitle">Dispatch invoiced orders &amp; deduct finished-goods stock</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if current_user.role_name in ('admin', 'production_supervisor') %}
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-truck-front-fill text-primary-brand me-2"></i>Dispatch Invoiced Order</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-2">
+            <label class="form-label">Invoiced Order</label>
+            <select name="order_id" class="form-select form-select-sm" required>
+              <option value="">-- Select Order --</option>
+              {% for o in ready_orders %}
+              <option value="{{ o.id }}">{{ o.order_no }} — {{ o.customer_name }} (₹{{ "%.2f"|format(o.total_amount) }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Dispatch Date</label>
+            <input type="date" name="dispatch_date" class="form-control form-control-sm" value="{{ today_str }}" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Vehicle No</label>
+            <input type="text" name="vehicle_no" class="form-control form-control-sm" placeholder="TN-59-AB-1234">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Transporter</label>
+            <input type="text" name="transporter" class="form-control form-control-sm" placeholder="Transporter name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">LR No / Remarks</label>
+            <input type="text" name="lr_no" class="form-control form-control-sm" placeholder="Optional">
+          </div>
+          <button class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-box-arrow-right"></i> Confirm Dispatch &amp; Deduct Stock
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{% if current_user.role_name in ('admin', 'production_supervisor') %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="card table-card">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-truck text-primary-brand me-2"></i>Dispatch Register</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Dispatch No</th>
+              <th>Date</th>
+              <th>Order</th>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Vehicle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in dispatches %}
+            <tr>
+              <td class="fw-600 mono">{{ d.dispatch_no }}</td>
+              <td class="text-muted-sm">{{ d.dispatch_date }}</td>
+              <td class="mono">{{ d.order_no }}</td>
+              <td class="mono">{{ d.invoice_no }}</td>
+              <td class="fw-600">{{ d.customer_name }}</td>
+              <td><span class="chip chip-info">{{ d.vehicle_no or "—" }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon"><i class="bi bi-truck"></i></div>
+                  <h6>No dispatches recorded yet</h6>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

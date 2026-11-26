@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Verify & Approve Order{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Order {{ order.order_no }}</h1>
+    <div class="page-subtitle">Verification, stock check &amp; GST invoice generation</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('orders_page') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+</div>
+
+<!-- Order Summary KPIs -->
+<div class="kpi-grid mb-4">
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-building"></i></div>
+    <div class="kpi-label">Customer</div>
+    <div class="kpi-value" style="font-size:1.1rem;">{{ order.customer_name }}</div>
+    <div class="kpi-change">{{ order.customer_state }} ({{ order.customer_state_code }})</div>
+  </div>
+  <div class="kpi-card kpi-info">
+    <div class="kpi-icon"><i class="bi bi-person-badge"></i></div>
+    <div class="kpi-label">Salesman</div>
+    <div class="kpi-value" style="font-size:1.1rem;">{{ order.salesman_name }}</div>
+    <div class="kpi-change">Order Date: {{ order.order_date }}</div>
+  </div>
+  <div class="kpi-card kpi-success">
+    <div class="kpi-icon"><i class="bi bi-currency-rupee"></i></div>
+    <div class="kpi-label">Order Total</div>
+    <div class="kpi-value mono">₹{{ "%.2f"|format(order.total_amount) }}</div>
+    <div class="kpi-change">Inclusive of GST</div>
+  </div>
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-icon"><i class="bi bi-flag-fill"></i></div>
+    <div class="kpi-label">Status</div>
+    <div class="mt-1"><span class="chip chip-{{ order.status | lower }}">{{ order.status }}</span></div>
+    <div class="kpi-change">Workflow stage</div>
+  </div>
+</div>
+
+{% if order.has_stock_shortage %}
+<div class="alert alert-danger mb-4" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <div><strong>Stock Shortage Warning:</strong> {{ order.shortage_note }}</div>
+</div>
+{% endif %}
+
+<div class="card table-card mb-4">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-list-check text-primary-brand me-2"></i>Line Items &amp; Stock Check</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>HSN</th>
+          <th class="amount">Requested</th>
+          <th class="amount">Available</th>
+          <th class="amount">Price (₹)</th>
+          <th class="amount">Taxable (₹)</th>
+          <th class="amount">GST (₹)</th>
+          <th class="amount">Line Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td class="fw-600">{{ it.product_name }}</td>
+          <td class="mono">{{ it.hsn_code }}</td>
+          <td class="amount fw-700">{{ it.qty_packets }}</td>
+          <td class="amount">
+            {{ it.available_qty }}
+            {% if it.available_qty < it.qty_packets %}
+            <span class="chip chip-danger ms-1">Short by {{ it.qty_packets - it.available_qty }}</span>
+            {% endif %}
+          </td>
+          <td class="amount mono">₹{{ "%.2f"|format(it.unit_price) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(it.taxable_amount) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(it.gst_amount) }} <span class="text-muted-sm">({{ it.gst_rate }}%)</span></td>
+          <td class="amount mono fw-700">₹{{ "%.2f"|format(it.line_total) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if current_user.role_name == 'admin' %}
+<div class="card">
+  <div class="card-header">
+    <span><i class="bi bi-shield-check text-primary-brand me-2"></i>Admin Action</span>
+  </div>
+  <div class="card-body">
+    <form method="post" class="d-flex flex-wrap gap-2 align-items-center">
+      <input type="text" name="remarks" class="form-control form-control-sm" style="max-width:340px;" placeholder="Verification remarks (optional)">
+      {% if order.status == 'Submitted' %}
+      <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+        <i class="bi bi-check-lg"></i> Approve Order
+      </button>
+      <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+        <i class="bi bi-x-lg"></i> Reject Order
+      </button>
+      {% elif order.status == 'Approved' %}
+      <button type="submit" name="action" value="invoice" class="btn btn-primary btn-sm">
+        <i class="bi bi-file-earmark-text-fill"></i> Generate GST Invoice
+      </button>
+      {% else %}
+      <span class="text-muted-sm">No pending admin action for status <strong>{{ order.status }}</strong>.</span>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Monthly Reports & Exports{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Monthly Audit Reports &amp; Exports</h1>
+    <div class="page-subtitle">Date-range filtered statutory, GST, stock, costing &amp; ageing exports</div>
+  </div>
+</div>
+
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">From Date</label>
+        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">To Date</label>
+        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary btn-sm"><i class="bi bi-funnel-fill"></i> Apply Filter</button>
+        <a href="{{ url_for('reports_page') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card table-card mb-4">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-download text-primary-brand me-2"></i>Download Reports (Excel / CSV / PDF)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Report</th>
+          <th style="width:280px;">Export Formats</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rkey, rlabel in [
+          ('sales_register', 'Sales Register'),
+          ('gst_summary', 'GST Summary (GSTR-1 / GSTR-3B)'),
+          ('purchases', 'Purchase Register'),
+          ('stock_summary', 'Stock Summary'),
+          ('stock_ledger', 'Stock Ledger'),
+          ('production_variance', 'Production, Variance & Wastage'),
+          ('costing', 'Production Costing & Margin'),
+          ('payments', 'Payments Collection'),
+          ('payments_ageing', 'Outstanding & Receivables Ageing')
+        ] %}
+        <tr>
+          <td class="fw-600">{{ rlabel }}</td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap">
+              <a href="{{ url_for('export_report', report_type=rkey, fmt='xlsx', start_date=start_date, end_date=end_date) }}" class="btn btn-success btn-xs">
+                <i class="bi bi-file-earmark-excel-fill"></i> Excel
+              </a>
+              <a href="{{ url_for('export_report', report_type=rkey, fmt='csv', start_date=start_date, end_date=end_date) }}" class="btn btn-outline-primary btn-xs">
+                <i class="bi bi-filetype-csv"></i> CSV
+              </a>
+              <a href="{{ url_for('export_report', report_type=rkey, fmt='pdf', start_date=start_date, end_date=end_date) }}" class="btn btn-danger btn-xs">
+                <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card table-card h-100">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-people-fill text-primary-brand me-2"></i>Customer-Wise Sales</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>State</th>
+              <th class="amount">Taxable (₹)</th>
+              <th class="amount">GST (₹)</th>
+              <th class="amount">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in customer_sales %}
+            <tr>
+              <td class="fw-600">{{ c.customer_name }}</td>
+              <td><span class="chip chip-info">{{ c.state }}</span></td>
+              <td class="amount mono">₹{{ "%.2f"|format(c.taxable_amount) }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(c.gst_amount) }}</td>
+              <td class="amount mono fw-700">₹{{ "%.2f"|format(c.total_amount) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5"><div class="empty-state"><h6>No customer sales</h6></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card table-card h-100">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-box-seam-fill text-primary-brand me-2"></i>Product-Wise Sales</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>HSN</th>
+              <th class="amount">Qty</th>
+              <th class="amount">Taxable (₹)</th>
+              <th class="amount">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in product_sales %}
+            <tr>
+              <td class="fw-600">{{ p.product_name }}</td>
+              <td class="mono text-muted-sm">{{ p.hsn_code }}</td>
+              <td class="amount">{{ p.total_qty }}</td>
+              <td class="amount mono">₹{{ "%.2f"|format(p.taxable_amount) }}</td>
+              <td class="amount mono fw-700">₹{{ "%.2f"|format(p.total_sales) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5"><div class="empty-state"><h6>No product sales</h6></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

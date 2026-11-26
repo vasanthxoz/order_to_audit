@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Operations Dashboard</h1>
+    <div class="page-subtitle">Admin · {{ factory_name }}</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('orders_page') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-receipt"></i> All Orders
+    </a>
+    <a href="{{ url_for('create_order_page') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg"></i> New Order
+    </a>
+  </div>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="kpi-label">Submitted Orders</div>
+    <div class="kpi-value">{{ summary.submitted_orders }}</div>
+    <div class="kpi-change">Awaiting verification</div>
+  </div>
+  <div class="kpi-card kpi-success">
+    <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
+    <div class="kpi-label">Approved (To Invoice)</div>
+    <div class="kpi-value">{{ summary.approved_orders }}</div>
+    <div class="kpi-change">Ready to generate invoice</div>
+  </div>
+  <div class="kpi-card kpi-indigo">
+    <div class="kpi-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+    <div class="kpi-label">Invoiced (To Dispatch)</div>
+    <div class="kpi-value">{{ summary.invoiced_orders }}</div>
+    <div class="kpi-change">Pending dispatch</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-icon"><i class="bi bi-currency-rupee"></i></div>
+    <div class="kpi-label">Outstanding</div>
+    <div class="kpi-value mono">₹{{ "%.0f"|format(summary.total_outstanding) }}</div>
+    <div class="kpi-change">Total receivable</div>
+  </div>
+</div>
+
+<!-- Low stock alert -->
+{% if low_stock %}
+<div class="alert alert-warning mb-4" role="alert" style="border-radius:12px;">
+  <i class="bi bi-exclamation-triangle-fill" style="font-size:1rem;"></i>
+  <div>
+    <strong>Low Stock Alert</strong>
+    <div class="mt-1 d-flex flex-wrap gap-2">
+      {% for ls in low_stock %}
+      <span class="chip chip-warning">
+        <i class="bi bi-box-seam"></i>
+        {{ ls.item_name }}: {{ ls.current_qty }} {{ ls.unit_code }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent Orders Table -->
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title">
+      <i class="bi bi-receipt text-primary-brand me-2"></i>Recent Sales Orders
+    </span>
+    <a href="{{ url_for('orders_page') }}" class="btn btn-outline-secondary btn-sm">
+      View All <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Order No</th>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>State</th>
+          <th class="amount">Total (₹)</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td class="fw-600">{{ o.order_no }}</td>
+          <td class="text-muted-sm">{{ o.order_date }}</td>
+          <td>{{ o.customer_name }}</td>
+          <td><span class="chip chip-info">{{ o.customer_state }}</span></td>
+          <td class="amount mono">{{ "%.2f"|format(o.total_amount) }}</td>
+          <td>
+            <span class="chip chip-{{ o.status | lower }}">{{ o.status }}</span>
+            {% if o.has_stock_shortage %}
+            <span class="chip chip-danger ms-1">
+              <i class="bi bi-exclamation-circle"></i> Shortage
+            </span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('approve_order_page', order_id=o.id) }}"
+               class="btn btn-primary btn-xs">
+              <i class="bi bi-pencil-square"></i> Manage
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+              <h6>No orders yet</h6>
+              <p>Orders placed by salesmen will appear here.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

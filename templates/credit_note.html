@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Credit Notes{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Credit Notes</h1>
+    <div class="page-subtitle">Audit-compliant invoice cancellation without deletion</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if current_user.role_name == 'admin' %}
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-arrow-counterclockwise text-danger me-2"></i>Issue Credit Note</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Posted Invoice</label>
+            <select name="invoice_id" class="form-select form-select-sm" required>
+              <option value="">-- Select Invoice --</option>
+              {% for i in posted_invoices %}
+              <option value="{{ i.id }}">{{ i.invoice_no }} — {{ i.customer_name }} (₹{{ "%.2f"|format(i.total_amount) }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cancellation Reason</label>
+            <textarea name="reason" class="form-control form-control-sm" rows="3" placeholder="Enter reason for audit trail" required></textarea>
+          </div>
+          <button class="btn btn-danger btn-sm w-100">
+            <i class="bi bi-x-octagon-fill"></i> Issue Credit Note &amp; Cancel Invoice
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{% if current_user.role_name == 'admin' %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="card table-card">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-journal-check text-primary-brand me-2"></i>Credit Note Register</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Credit Note No</th>
+              <th>Date</th>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th class="amount">Total (₹)</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cn in credit_notes %}
+            <tr>
+              <td class="fw-600 mono">{{ cn.credit_note_no }}</td>
+              <td class="text-muted-sm">{{ cn.credit_date }}</td>
+              <td class="mono">{{ cn.invoice_no }}</td>
+              <td class="fw-600">{{ cn.customer_name }}</td>
+              <td class="amount mono fw-600">₹{{ "%.2f"|format(cn.total_amount) }}</td>
+              <td class="text-muted-sm">{{ cn.reason }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+                  <h6>No credit notes issued</h6>
+                  <p>Posted invoices remain active.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Bill of Materials (BOM){% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Bill of Materials (BOM)</h1>
+    <div class="page-subtitle">Standard batch recipes, packaging &amp; expected packet yield</div>
+  </div>
+</div>
+
+{% for b in boms %}
+<div class="card table-card mb-4">
+  <div class="table-toolbar">
+    <div>
+      <span class="table-title">
+        <i class="bi bi-diagram-3-fill text-primary-brand me-2"></i>
+        {{ b.header.product_name }} <span class="text-muted-sm mono">({{ b.header.sku }})</span>
+      </span>
+      <div class="text-muted-sm mt-1">{{ b.header.batch_name }} · Version {{ b.header.version }}</div>
+    </div>
+    <span class="chip chip-approved">
+      <i class="bi bi-box-seam"></i> Expected Output: {{ b.header.expected_output_packets }} pkts
+    </span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Material</th>
+          <th class="amount">Standard Qty</th>
+          <th>Unit</th>
+          <th class="amount">Available Stock</th>
+          <th class="amount">Avg Rate (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in b.bom_items %}
+        <tr>
+          <td>
+            <span class="chip {% if it.item_type == 'RAW_MATERIAL' %}chip-info{% else %}chip-warning{% endif %}">
+              {{ it.item_type | replace('_', ' ') }}
+            </span>
+          </td>
+          <td class="fw-600">{{ it.item_name }}</td>
+          <td class="amount mono fw-700">{{ it.standard_qty }}</td>
+          <td class="text-muted-sm">{{ it.unit_code }}</td>
+          <td class="amount mono">{{ it.available_qty }} {{ it.unit_code }}</td>
+          <td class="amount mono">₹{{ "%.4f"|format(it.current_rate) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-diagram-3"></i></div>
+    <h6>No BOMs configured</h6>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

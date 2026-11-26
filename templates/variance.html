@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Variance Analysis{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Production &amp; Material Variance Analysis</h1>
+    <div class="page-subtitle">Configured Tolerance: ±{{ tolerance }}% · Abnormal variances beyond threshold are flagged</div>
+  </div>
+  <div class="page-actions">
+    <span class="chip chip-info">Tolerance: ±{{ tolerance }}%</span>
+  </div>
+</div>
+
+<div class="card table-card mb-4">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-graph-up-arrow text-primary-brand me-2"></i>Batch Yield Variance</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Batch</th>
+          <th>Date</th>
+          <th>Product</th>
+          <th class="amount">Expected</th>
+          <th class="amount">Good Pkts</th>
+          <th class="amount">Damaged</th>
+          <th class="amount">Yield Var %</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr class="{% if r.yield_abnormal %}table-danger{% endif %}">
+          <td class="fw-600 mono">{{ r.batch_no }}</td>
+          <td class="text-muted-sm">{{ r.production_date }}</td>
+          <td class="fw-600">{{ r.product_name }}</td>
+          <td class="amount">{{ r.expected_packets }}</td>
+          <td class="amount">{{ r.good_packets }}</td>
+          <td class="amount">{{ r.damaged_pouches }}</td>
+          <td class="amount mono fw-700">{{ r.yield_variance_pct }}%</td>
+          <td>
+            <span class="{% if r.yield_abnormal %}badge-abnormal{% else %}badge-normal{% endif %}">
+              {{ "ABNORMAL" if r.yield_abnormal else "NORMAL" }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8"><div class="empty-state"><h6>No batch variance data</h6></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-sliders text-primary-brand me-2"></i>Material Consumption Variance</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Batch</th>
+          <th>Material</th>
+          <th class="amount">Planned</th>
+          <th class="amount">Actual</th>
+          <th class="amount">Damaged</th>
+          <th class="amount">Rate (₹)</th>
+          <th class="amount">Cost (₹)</th>
+          <th class="amount">Var %</th>
+          <th>Flag</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in details %}
+        <tr class="{% if d.is_abnormal %}table-danger{% endif %}">
+          <td class="fw-600 mono">{{ d.batch_no }}</td>
+          <td class="fw-600">{{ d.item_name }}</td>
+          <td class="amount mono">{{ d.planned_qty }}</td>
+          <td class="amount mono">{{ d.actual_qty }}</td>
+          <td class="amount mono">{{ d.damaged_qty }}</td>
+          <td class="amount mono">₹{{ "%.4f"|format(d.unit_rate) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(d.total_cost) }}</td>
+          <td class="amount mono fw-700">{{ d.variance_pct }}%</td>
+          <td>
+            <span class="{% if d.is_abnormal %}badge-abnormal{% else %}badge-normal{% endif %}">
+              {{ "ABNORMAL" if d.is_abnormal else "OK" }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9"><div class="empty-state"><h6>No material consumption records</h6></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

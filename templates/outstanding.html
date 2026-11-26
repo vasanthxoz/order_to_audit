@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Outstanding & Ageing{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Outstanding &amp; Receivables Ageing</h1>
+    <div class="page-subtitle">Customer-wise pending balances across 0–30, 31–60 &amp; 60+ day buckets</div>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-clock-history text-primary-brand me-2"></i>Receivables Ageing Summary</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>State</th>
+          <th class="amount">Invoices</th>
+          <th class="amount">Total Invoiced (₹)</th>
+          <th class="amount">Total Paid (₹)</th>
+          <th class="amount">Outstanding (₹)</th>
+          <th class="amount">0–30 Days</th>
+          <th class="amount">31–60 Days</th>
+          <th class="amount">60+ Days</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in ageing %}
+        <tr>
+          <td class="fw-600">{{ a.customer_name }}</td>
+          <td><span class="chip chip-info">{{ a.state }}</span></td>
+          <td class="amount">{{ a.invoice_count }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(a.total_invoiced) }}</td>
+          <td class="amount mono text-success">₹{{ "%.2f"|format(a.total_paid) }}</td>
+          <td class="amount mono fw-700 {% if a.total_outstanding > 0 %}text-danger{% else %}text-success{% endif %}">
+            ₹{{ "%.2f"|format(a.total_outstanding) }}
+          </td>
+          <td class="amount mono">₹{{ "%.2f"|format(a.bucket_0_30) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(a.bucket_31_60) }}</td>
+          <td class="amount mono">₹{{ "%.2f"|format(a.bucket_60_plus) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-check2-all"></i></div>
+              <h6>No outstanding receivables</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Raw Materials{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Raw Materials</h1>
+    <div class="page-subtitle">Ingredients master, units, reorder thresholds &amp; weighted average rates</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if current_user.role_name in ('admin', 'production_supervisor') %}
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-droplet-fill text-primary-brand me-2"></i>Add Raw Material</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-2"><label class="form-label">Code</label><input type="text" name="code" class="form-control form-control-sm mono" required></div>
+          <div class="mb-2"><label class="form-label">Name</label><input type="text" name="name" class="form-control form-control-sm" required></div>
+          <div class="mb-2">
+            <label class="form-label">Unit</label>
+            <select name="unit_id" class="form-select form-select-sm">{% for u in units %}<option value="{{ u.id }}">{{ u.code }}</option>{% endfor %}</select>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label">HSN</label><input type="text" name="hsn_code" class="form-control form-control-sm mono"></div>
+            <div class="col-6"><label class="form-label">GST %</label><input type="number" step="0.01" name="gst_rate" class="form-control form-control-sm mono" value="5"></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Reorder Level</label><input type="number" step="0.01" name="reorder_level" class="form-control form-control-sm mono" value="10"></div>
+          <button class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-check2-circle"></i> Add Raw Material
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{% if current_user.role_name in ('admin', 'production_supervisor') %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="card table-card">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-list-ul text-primary-brand me-2"></i>Raw Material Stock</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Material</th>
+              <th>Unit</th>
+              <th class="amount">Current Stock</th>
+              <th class="amount">Weighted Avg Rate (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in materials %}
+            <tr>
+              <td class="mono text-muted-sm">{{ m.code }}</td>
+              <td class="fw-600">{{ m.name }}</td>
+              <td class="text-muted-sm">{{ m.unit_code }}</td>
+              <td class="amount mono fw-700 text-primary-brand">{{ m.current_stock }}</td>
+              <td class="amount mono">₹{{ "%.4f"|format(m.weighted_avg_rate) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5"><div class="empty-state"><h6>No raw materials found</h6></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

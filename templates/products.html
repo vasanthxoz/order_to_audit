@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Products &amp; Price List</h1>
+    <div class="page-subtitle">Snacks catalog, pack sizes, HSN codes, GST rates &amp; finished stock</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if current_user.role_name in ('admin', 'owner') %}
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-plus-square-fill text-primary-brand me-2"></i>Add Product</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-2"><label class="form-label">SKU</label><input type="text" name="sku" class="form-control form-control-sm" required></div>
+          <div class="mb-2"><label class="form-label">Product Name</label><input type="text" name="name" class="form-control form-control-sm" required></div>
+          <div class="mb-2">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select form-select-sm"><option>Murukku</option><option>Mixture</option><option>Chips</option><option>Sweets</option></select>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label">Pack (g)</label><input type="number" step="0.01" name="pack_size_grams" class="form-control form-control-sm mono" value="200" required></div>
+            <div class="col-6"><label class="form-label">Pack Label</label><input type="text" name="pack_label" class="form-control form-control-sm" value="200 g" required></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label">Pkts / Carton</label><input type="number" name="packets_per_carton" class="form-control form-control-sm mono" value="20" required></div>
+            <div class="col-6"><label class="form-label">HSN</label><input type="text" name="hsn_code" class="form-control form-control-sm mono" value="21069099" required></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label">GST %</label><input type="number" step="0.01" name="gst_rate" class="form-control form-control-sm mono" value="5.00" required></div>
+            <div class="col-6"><label class="form-label">Selling Price (₹)</label><input type="number" step="0.01" name="selling_price" class="form-control form-control-sm mono" required></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Unit</label>
+            <select name="unit_id" class="form-select form-select-sm">
+              {% for u in units %}<option value="{{ u.id }}" {% if u.code == 'pkt' %}selected{% endif %}>{{ u.code }} - {{ u.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-check2-circle"></i> Save Product
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{% if current_user.role_name in ('admin', 'owner') %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="card table-card">
+      <div class="table-toolbar">
+        <span class="table-title"><i class="bi bi-box-seam-fill text-primary-brand me-2"></i>Product Catalog</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Pack</th>
+              <th>HSN</th>
+              <th class="amount">GST %</th>
+              <th class="amount">Price (₹)</th>
+              <th class="amount">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            <tr>
+              <td class="mono text-muted-sm">{{ p.sku }}</td>
+              <td class="fw-600">{{ p.name }}</td>
+              <td><span class="chip chip-info">{{ p.category }}</span></td>
+              <td class="text-muted-sm">{{ p.pack_label }}</td>
+              <td class="mono text-muted-sm">{{ p.hsn_code }}</td>
+              <td class="amount mono">{{ p.gst_rate }}%</td>
+              <td class="amount mono">₹{{ "%.2f"|format(p.default_price) }}</td>
+              <td class="amount mono fw-700 text-primary-brand">{{ p.current_stock }} {{ p.unit_code }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8"><div class="empty-state"><h6>No products found</h6></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

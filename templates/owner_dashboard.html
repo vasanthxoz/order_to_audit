@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Owner Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Executive Dashboard</h1>
+    <div class="page-subtitle">Owner · {{ factory_name }}</div>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('reports_page') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-download"></i> Export Reports
+    </a>
+  </div>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+  <div class="kpi-card kpi-primary">
+    <div class="kpi-icon"><i class="bi bi-receipt-cutoff"></i></div>
+    <div class="kpi-label">Total Orders</div>
+    <div class="kpi-value">{{ data.kpis.total_orders }}</div>
+  </div>
+  <div class="kpi-card kpi-success">
+    <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <div class="kpi-label">Posted Sales</div>
+    <div class="kpi-value mono">₹{{ "%.0f"|format(data.kpis.total_sales) }}</div>
+  </div>
+  <div class="kpi-card kpi-info">
+    <div class="kpi-icon"><i class="bi bi-boxes"></i></div>
+    <div class="kpi-label">Stock Value</div>
+    <div class="kpi-value mono">₹{{ "%.0f"|format(data.kpis.total_stock_value) }}</div>
+  </div>
+  <div class="kpi-card kpi-indigo">
+    <div class="kpi-icon"><i class="bi bi-calculator-fill"></i></div>
+    <div class="kpi-label">Avg Cost / Pkt</div>
+    <div class="kpi-value mono">₹{{ "%.2f"|format(data.kpis.avg_cost_per_packet) }}</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="kpi-label">Outstanding</div>
+    <div class="kpi-value text-danger mono">₹{{ "%.0f"|format(data.kpis.total_outstanding) }}</div>
+  </div>
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div class="kpi-label">Variance Alerts</div>
+    <div class="kpi-value text-warning">{{ data.kpis.abnormal_yield_runs + data.kpis.abnormal_material_vars }}</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="chart-card h-100">
+      <div class="chart-title">
+        <i class="bi bi-bar-chart-fill text-primary-brand"></i>
+        Product-Wise Sales (₹)
+      </div>
+      <canvas id="productSalesChart" height="120"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="chart-card h-100">
+      <div class="chart-title">
+        <i class="bi bi-pie-chart-fill text-primary-brand"></i>
+        Inventory Valuation Breakdown
+      </div>
+      <canvas id="stockBreakdownChart" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Production Runs -->
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title">
+      <i class="bi bi-gear-wide-connected text-primary-brand me-2"></i>
+      Recent Production Batches &amp; Variances
+    </span>
+    <a href="{{ url_for('variance_page') }}" class="btn btn-outline-secondary btn-sm">
+      Full Variance <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Batch No</th>
+          <th>Product</th>
+          <th class="amount">Expected</th>
+          <th class="amount">Good Pkts</th>
+          <th class="amount">Yield Var%</th>
+          <th class="amount">Cost / Pkt (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in data.recent_runs %}
+        <tr>
+          <td class="fw-600">{{ r.batch_no }}</td>
+          <td>{{ r.product_name }}</td>
+          <td class="amount">{{ r.expected_packets }}</td>
+          <td class="amount">{{ r.good_packets }}</td>
+          <td class="amount">
+            <span class="{% if r.yield_abnormal %}badge-abnormal{% else %}badge-normal{% endif %}">
+              {{ r.yield_variance_pct }}%
+            </span>
+          </td>
+          <td class="amount mono">₹{{ "%.2f"|format(r.cost_per_packet) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-gear"></i></div>
+              <h6>No production runs yet</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+renderBarChart(
+  "productSalesChart",
+  {{ data.product_sales | map(attribute='label') | list | tojson }},
+  {{ data.product_sales | map(attribute='value') | map('float') | list | tojson }},
+  "Sales (₹)"
+);
+renderDoughnutChart(
+  "stockBreakdownChart",
+  {{ data.stock_breakdown | map(attribute='label') | list | tojson }},
+  {{ data.stock_breakdown | map(attribute='value') | map('float') | list | tojson }}
+);
+</script>
+{% endblock %}

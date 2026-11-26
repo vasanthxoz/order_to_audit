@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Production Runs{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Production Execution &amp; Overheads</h1>
+    <div class="page-subtitle">Log batch runs, actual consumption, wastage &amp; overhead expenses</div>
+  </div>
+</div>
+
+{% if current_user.role_name in ('admin', 'production_supervisor') %}
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span><i class="bi bi-gear-wide-connected text-primary-brand me-2"></i>Record New Production Run</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="action" value="create_run">
+          <div class="row g-2 mb-3">
+            <div class="col-8">
+              <label class="form-label">Select BOM</label>
+              <select name="bom_id" class="form-select form-select-sm" required>
+                {% for b in boms %}
+                <option value="{{ b.header.id }}">{{ b.header.product_name }} — {{ b.header.batch_name }} (Exp: {{ b.header.expected_output_packets }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label">Date</label>
+              <input type="date" name="production_date" class="form-control form-control-sm" value="{{ today_str }}" required>
+            </div>
+          </div>
+
+          {% if boms %}
+          <div class="p-3 mb-3" style="background:#f8fafc;border:1px solid var(--border-color);border-radius:12px;">
+            <div class="section-label mb-2">Actual Raw Material Consumption ({{ boms[0].header.product_name }})</div>
+            <div class="row g-2">
+              {% for it in boms[0].bom_items if it.item_type == 'RAW_MATERIAL' %}
+              <div class="col-4">
+                <label class="form-label">{{ it.item_name }} ({{ it.unit_code }})</label>
+                <input type="number" step="0.001" name="raw_actual_{{ it.item_id }}" class="form-control form-control-sm mono" value="{{ it.standard_qty }}" required>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="row g-2 mb-2">
+            <div class="col-3"><label class="form-label">Good Pkts</label><input type="number" step="1" name="good_packets" class="form-control form-control-sm mono" required></div>
+            <div class="col-3"><label class="form-label">Damaged Pouches</label><input type="number" step="1" name="damaged_pouches" class="form-control form-control-sm mono" value="0"></div>
+            <div class="col-3"><label class="form-label">Cartons Used</label><input type="number" step="1" name="cartons_used" class="form-control form-control-sm mono" value="0"></div>
+            <div class="col-3"><label class="form-label">Wastage</label><input type="number" step="0.001" name="wastage_qty" class="form-control form-control-sm mono" value="0"></div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6"><label class="form-label">Labour Expense (₹)</label><input type="number" step="0.01" name="labour_cost" class="form-control form-control-sm mono" value="0"></div>
+            <div class="col-6"><label class="form-label">Gas / Power Expense (₹)</label><input type="number" step="0.01" name="gas_power_cost" class="form-control form-control-sm mono" value="0"></div>
+          </div>
+          <button class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-check2-circle"></i> Complete Production Run &amp; Update Stock
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Add Overhead Expense to Existing Batch</span>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="action" value="add_overhead">
+          <div class="mb-3">
+            <label class="form-label">Production Batch</label>
+            <select name="production_run_id" class="form-select form-select-sm" required>
+              {% for r in runs %}<option value="{{ r.id }}">{{ r.batch_no }} — {{ r.product_name }} ({{ r.good_packets }} pkts)</option>{% endfor %}
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label">Expense Type</label>
+              <select name="expense_type" class="form-select form-select-sm">
+                <option value="LABOUR">Labour</option>
+                <option value="GAS_POWER">Gas / Power</option>
+                <option value="OTHER">Other Overhead</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Amount (₹)</label>
+              <input type="number" step="0.01" name="amount" class="form-control form-control-sm mono" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-control form-control-sm" placeholder="e.g., Shift labour / LPG gas">
+          </div>
+          <button class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-calculator"></i> Add Overhead &amp; Recalculate Cost
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card table-card">
+  <div class="table-toolbar">
+    <span class="table-title"><i class="bi bi-list-ul text-primary-brand me-2"></i>Production Batch History</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Batch</th>
+          <th>Date</th>
+          <th>Product</th>
+          <th class="amount">Expected</th>
+          <th class="amount">Good</th>
+          <th class="amount">Damaged</th>
+          <th class="amount">Cartons</th>
+          <th class="amount">Yield Var %</th>
+          <th class="amount">Total Cost (₹)</th>
+          <th class="amount">Cost/Pkt (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr>
+          <td class="fw-600 mono">{{ r.batch_no }}</td>
+          <td class="text-muted-sm">{{ r.production_date }}</td>
+          <td class="fw-600">{{ r.product_name }}</td>
+          <td class="amount">{{ r.expected_packets }}</td>
+          <td class="amount fw-600">{{ r.good_packets }}</td>
+          <td class="amount">{{ r.damaged_pouches }}</td>
+          <td class="amount">{{ r.cartons_used }}</td>
+          <td class="amount">
+            <span class="{% if r.yield_abnormal %}badge-abnormal{% else %}badge-normal{% endif %}">{{ r.yield_variance_pct }}%</span>
+          </td>
+          <td class="amount mono">₹{{ "%.2f"|format(r.total_cost) }}</td>
+          <td class="amount mono fw-700">₹{{ "%.2f"|format(r.cost_per_packet) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="10">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-gear"></i></div>
+              <h6>No production runs recorded yet</h6>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
