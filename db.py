@@ -11,6 +11,7 @@ def get_connection(dbname=None):
         dbname=dbname or Config.DB_NAME,
         user=Config.DB_USER,
         password=Config.DB_PASSWORD,
+        sslmode="require",
         cursor_factory=RealDictCursor,
     )
 
